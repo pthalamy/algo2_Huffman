@@ -18,8 +18,45 @@ package body Arbre_Huffman is
 	end record;
 
 	procedure Affiche_Arbre(A: Arbre) is
+
+	   type Trace is array(1..8) of ChiffreBinaire;
+
+	   procedure Affiche_Rec(A : in Arbre;
+				 T : in out Trace;
+				 C : in out Natural) is
+	   begin
+	      if A.all.EstFeuille then
+		 for I in T'First..C loop
+		    Put (Integer'Image(Integer(T(I))));
+		 end loop;
+
+		 Put_Line ("-> " & A.Char);
+	      else
+		 C := C + 1;
+
+		 if A.Fils(0) /= null then
+		    T(C) := 0;
+		    Affiche_Rec (A.Fils(0), T, C);
+		 end if;
+
+		 if A.Fils(1) /= null then
+		    T(C) := 1;
+		    Affiche_Rec (A.Fils(1), T, C);
+		 end if;
+	      end if;
+
+	   end Affiche_Rec;
+
+	   T : Trace;
+	   C : Natural := 0;
 	begin
-		null; -- TODO
+	   if A = null then
+	      Put_Line ("Arbre inexistant.");
+	      return;
+	   end if;
+
+	   Affiche_Rec (A, T, C);
+
 	end Affiche_Arbre;
 
 	--algo principal : calcul l'arbre a partir des frequences
