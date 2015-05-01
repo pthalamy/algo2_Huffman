@@ -10,6 +10,7 @@ package Arbre_Huffman is
 
    function Calcul_Arbre(Frequences : in Tableau_Ascii) return Arbre;
    procedure Affiche_Arbre(A: Arbre);
+   procedure Exporte_Arbre(A : Arbre);
 
    --un code binaire
    type TabBits is array(Positive range <>) of ChiffreBinaire ;
@@ -30,7 +31,8 @@ package Arbre_Huffman is
       --remplace l'ancien reste par le nouveau
    procedure Decodage_Code(Reste : in out Code;
 			   Arbre_Huffman : Arbre;
-			   Caractere : out Character);
+			   Caractere : out Character;
+			   Bit_Cour : in out Natural);
 private
    type Noeud;
    type Arbre is access Noeud;

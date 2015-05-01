@@ -127,6 +127,7 @@ procedure Huffman is
       SAcces := Stream( Sortie );
       Natural'Output(Sacces, Taille);
       Tableau_Ascii'Output(Sacces,Frequences) ;
+      Exporte_Arbre(Arbre_Huffman);
       Open(Entree, In_File, Fichier_Entree);
       EAcces := Stream(Entree);
       Reste := null;
@@ -152,7 +153,7 @@ procedure Huffman is
       end;
 
       procedure Caractere_Suivant is new Decodage_Code(Lecture_Octet_Compresse);
-
+      Bit_Cour : Natural := 1;
    begin
       Open(Entree, In_File, Fichier_Entree);
       EAcces := Stream( Entree );
@@ -163,7 +164,7 @@ procedure Huffman is
       Reste := null;
       Octets_Ecrits := 0;
       while(Octets_Ecrits < Taille) loop
-	 Caractere_Suivant(Reste, Arbre_Huffman, Caractere);
+	 Caractere_Suivant(Reste, Arbre_Huffman, Caractere, Bit_Cour);
 	 Octets_Ecrits := Octets_Ecrits + 1;
 	 Character'Output(SAcces, Caractere);
       end loop;
