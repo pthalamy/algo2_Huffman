@@ -43,7 +43,7 @@ package body File_Priorite is
 	    Pere := Pos / 2;
 	 end if;
 
-	 exit when Compare(F(Pos).P, F(Pere).P) /= SUP;
+	 exit when Compare(F(Pos).P, F(Pere).P) /= INF;
 
 	 Echange (F(Pos), F(Pere));
 
@@ -56,7 +56,7 @@ package body File_Priorite is
 		      D: out Donnee;
 		      Statut: out Boolean) is
    begin
-      if Nb_Elts /= 0 then
+      if Nb_Elts > 0 then
 	 P := F(F'First).P;
 	 D := F(F'First).D;
 
@@ -71,25 +71,32 @@ package body File_Priorite is
       J : Natural;
    begin
 
+      --  F(1..Nb_Elts) := F(2..Nb_Elts + 1);
+      --  Nb_Elts := Nb_Elts - 1;
+
       F(I) := F(Nb_Elts);
       Nb_Elts := Nb_Elts - 1;
 
       while I < Nb_Elts loop
-	 -- Recherche du plus grand des deux fils
-	 if Compare (F(2*I).P, F(2*I + 1).P) = SUP then
-	    J := 2*I;
-	 else
+      	 -- Recherche du plus petit des deux fils
+      	 if Compare (F(2*I).P, F(2*I + 1).P) = SUP then
 	    J := 2*I + 1;
-	 end if;
+	    --  Put ("J := 2I + 1 – ");
+      	 else
+	    J := 2*I;
+	    --  Put ("J := 2I – ");
+      	 end if;
 
-	 -- On compare avec le dernier element, alors à la racine
-	 if Compare (F(J).P, F(I).P) = SUP then
-	    --  Put_Line ("échange de F(" & Integer'Image(J)
-	    --  		& " ) et F(" & Integer'Image(I) & " )") ;
-	    Echange (F(J), F(I));
-	 end if;
+	 exit when J > Nb_Elts;
 
-	 I := I + 1;
+      	 -- On compare avec le dernier element, alors à la racine
+      	 if Compare (F(J).P, F(I).P) = INF then
+      	    --  Put_Line ("échange de F(" & Integer'Image(J)
+      	    --  		& " ) et F(" & Integer'Image(I) & " )") ;
+      	    Echange (F(J), F(I));
+      	 end if;
+
+      	 I := I + 1;
       end loop;
    end;
 
