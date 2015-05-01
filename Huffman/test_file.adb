@@ -25,7 +25,25 @@ begin
 	while C loop
 		Meilleur(F, P1, E, C);
 		if C then
-			Put(E);
+			Put(E); Put (P1);
+			New_line;
+			Suppression(F);
+		end if;
+	end loop;
+
+	New_Line;
+
+	F := Nouvelle_File(10);
+	Insertion(F, 4, 4);
+	Insertion(F, 2, 2);
+	Insertion(F, 1, 1);
+	Insertion(F, 3, 3);
+	Insertion(F, 1, 1);
+	C := true;
+	while C loop
+		Meilleur(F, P1, E, C);
+		if C then
+			Put(E); Put (P1);
 			New_line;
 			Suppression(F);
 		end if;
