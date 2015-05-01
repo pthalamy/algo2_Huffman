@@ -52,6 +52,8 @@ package body Arbre_Huffman is
       T : Trace;
       C : Natural := 0;
    begin
+      Put_Line ("Affichage de l'arbre de Huffman :");
+
       if A = null then
 	 Put_Line ("Arbre inexistant.");
 	 return;
@@ -74,6 +76,8 @@ package body Arbre_Huffman is
       Statut : Boolean;
       Fils_Gauche, Fils_Droite : Arbre;
    begin
+      Put_Line ("Calcul de l'arbre de Huffman :");
+
       -- Mise en place de la file de priorité
       for I in Frequences'Range loop
 	 if Frequences(I) > 0 then
@@ -81,7 +85,7 @@ package body Arbre_Huffman is
 	 end if;
       end loop;
 
-      Put_Line ("Taille:" & Integer'Image(Taille));
+      --  Put_Line ("Taille:" & Integer'Image(Taille));
 
       -- TODO: FIND CLEANER WAY TO INIT HEAP
       F := Nouvelle_File (256);
@@ -96,7 +100,7 @@ package body Arbre_Huffman is
       loop
 	 Meilleur (F, P, D, Statut);
 	 exit when not Statut;
-	 Put_Line (Integer'Image(P));
+	 --  Put_Line (Integer'Image(P));
 	 PSum := PSum + P;
 	 Fils_Gauche := D;
 	 Suppression (F);
@@ -117,9 +121,48 @@ package body Arbre_Huffman is
    end Calcul_Arbre;
 
    function Calcul_Dictionnaire(A : Arbre) return Dico is
+      type Trace is array(1..8) of ChiffreBinaire;
+
+      procedure Calcul_Dictionnaire_Rec (A : in Arbre;
+					 D : in out Dico;
+					 T : in out Trace;
+					 C : in out Natural) is
+      begin
+	 if A.all.EstFeuille then
+
+	    D(A.Char) := new TabBits(T'First..C);
+	    for I in D(A.Char)'range loop
+	       D(A.Char)(I) := T(I);
+	       Put (Integer'Image(D(A.Char)(I)));
+	    end loop;
+
+	    Put_Line (" -> " & A.Char);
+	 else
+	    C := C + 1;
+
+	    if A.Fils(0) /= null then
+	       T(C) := 0;
+	       Calcul_Dictionnaire_Rec (A.Fils(0), D, T, C);
+	    end if;
+
+	    if A.Fils(1) /= null then
+	       T(C) := 1;
+	       Calcul_Dictionnaire_Rec (A.Fils(1), D, T, C);
+	    end if;
+
+	    C := C - 1;
+	 end if;
+
+      end Calcul_Dictionnaire_Rec;
+
       D : Dico;
+      C : Natural := 0;
+      T : Trace;
    begin
-      -- TODO
+      Put_Line ("Calcul du dictionnaire :");
+
+      Calcul_Dictionnaire_Rec (A, D, T, C);
+
       return D;
    end;
 
