@@ -132,8 +132,9 @@ package body Arbre_Huffman is
 	 Tmp, R : Integer;
       begin
 	 if A.all.EstFeuille then
-	    Put ("1" & A.Char);
+	    --  Put ("1" & A.Char);
 	    T(Bit_Cour) := 1;
+	    Bit_Cour := Bit_Cour + 1;
 
 	    Tmp := Character'Pos(A.Char);
    	    for I in 1..8 loop
@@ -144,7 +145,7 @@ package body Arbre_Huffman is
 
 	    Bit_Cour := Bit_Cour + 8;
 	 else
-	    Put ("0");
+	    --  Put ("0");
 	    T(Bit_Cour) := 0;
 	    Bit_Cour := Bit_Cour + 1;
 
@@ -159,10 +160,13 @@ package body Arbre_Huffman is
       end Encode_Arbre_Rec;
 
    begin
-      Put_Line ("=> Encodage de l'arbre de Huffman :");
+      Put_Line ("=> Encodage de l'arbre de Huffman");
 
       Encode_Arbre_Rec (A, T, Bit_Cour);
-      New_Line;
+
+      for I in Bit_Cour..T'Last loop
+	 T(I) := 0;
+      end loop;
    end Encode_Arbre;
 
    function Decode_Arbre(T : in out Code) return Arbre is
@@ -181,21 +185,23 @@ package body Arbre_Huffman is
 	    Decode_Arbre_Rec(A.Fils(0), T, Bit_Cour);
 	    Decode_Arbre_Rec(A.Fils(1), T, Bit_Cour);
 	 else
-	    New_Line;
-	    for J in 1..8 loop
-	       Put_Line (Integer'Image(CarPos));
+	    CarPos := CarPos + T(Bit_Cour + 1);
+	    for J in 2..8 loop
+	       CarPos := CarPos * 2;
    	       CarPos := CarPos + T(Bit_Cour + J);
-   	       CarPos := CarPos * 2;
    	    end loop;
-	    Bit_Cour := Bit_Cour + 8;
+	    Bit_Cour := Bit_Cour + 9;
 	    A := new Noeud'(EstFeuille => True,
 			    Char => Character'Val(CarPos));
 	 end if;
       end Decode_Arbre_Rec;
    begin
-      Put_Line ("=> Décodage de l'arbre de Huffman :");
+      Put_Line ("=> Décodage de l'arbre de Huffman");
 
       Decode_Arbre_Rec (A, T, Bit_Cour);
+
+      Liberer (T);
+      T := null;
 
       return A;
    end Decode_Arbre;
@@ -213,10 +219,8 @@ package body Arbre_Huffman is
 	    D(A.Char) := new TabBits(T'First..C);
 	    for I in D(A.Char)'range loop
 	       D(A.Char)(I) := T(I);
-	       Put (Integer'Image(D(A.Char)(I)));
 	    end loop;
 
-	    Put_Line (" -> " & A.Char);
 	 else
 	    C := C + 1;
 
@@ -239,7 +243,7 @@ package body Arbre_Huffman is
       C : Natural := 0;
       T : Trace;
    begin
-      Put_Line ("=> Calcul du dictionnaire :");
+      Put_Line ("=> Calcul du dictionnaire");
 
       Calcul_Dictionnaire_Rec (A, D, T, C);
 
