@@ -1,3 +1,6 @@
+with Ada.Streams.Stream_IO;
+use Ada.Streams.Stream_IO;
+
 with Ada.Unchecked_Deallocation;
 
 package Arbre_Huffman is
@@ -8,9 +11,9 @@ package Arbre_Huffman is
    --arbre
    type Arbre is private;
 
-   function Calcul_Arbre(Frequences : in Tableau_Ascii) return Arbre;
+   function Calcul_Arbre(Frequences : in Tableau_Ascii;
+			 Nb_Feuilles : out Natural) return Arbre;
    procedure Affiche_Arbre(A: Arbre);
-   procedure Exporte_Arbre(A : Arbre);
 
    --un code binaire
    type TabBits is array(Positive range <>) of ChiffreBinaire ;
@@ -33,6 +36,11 @@ package Arbre_Huffman is
 			   Arbre_Huffman : Arbre;
 			   Caractere : out Character;
 			   Bit_Cour : in out Natural);
+
+   procedure Encode_Arbre(A : in Arbre;
+			  T : in out Code);
+   function Decode_Arbre(T : in out Code) return Arbre;
+
 private
    type Noeud;
    type Arbre is access Noeud;

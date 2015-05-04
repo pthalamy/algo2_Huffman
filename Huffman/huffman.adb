@@ -53,8 +53,10 @@ procedure Huffman is
 				    D : Dico) is
 
       Compte : Natural; --combien de bits on a reussi a generer
-      Nouveau_Reste : Code; --les bits encore inutilises apres generation du caractere
-      Caractere_Entree : Character; --le prochain caractere lu dans le fichier non compresse
+      Nouveau_Reste : Code; --les bits encore inutilises apres generation
+			    -- du caractere
+      Caractere_Entree : Character; --le prochain caractere lu dans
+				    -- le fichier non compresse
    begin
       -- on recupere les 8 premiers octets du code
       -- si il n'y en a pas assez, on lit un nouveau code a partir
@@ -65,7 +67,8 @@ procedure Huffman is
 	 if (Reste = null) then
 	    --lecture d'un nouveau code a partir du fichier
 	    if (End_Of_File(Entree)) then
-	       --a la fin du fichier, il est necessaire de rajouter quelques zero
+	       -- a la fin du fichier,
+	       -- il est necessaire de rajouter quelques zero
 	       Reste := new TabBits(1..(8-Compte));
 	       for I in Reste'Range loop
 		  Reste(I) := 0;
@@ -82,8 +85,10 @@ procedure Huffman is
 	       Reste := Nouveau_Reste;
 	    end if;
 	 end if;
+
 	 for I in Reste'Range loop
-	    Caractere_Sortie := Character'Val(Character'Pos(Caractere_Sortie) * 2 + Reste(I));
+	    Caractere_Sortie := Character'Val(Character'Pos(Caractere_Sortie)*2
+						+ Reste(I));
 	    Compte := Compte + 1;
 	    if Compte = 8 then
 	       --mise a jour du reste
@@ -107,6 +112,53 @@ procedure Huffman is
 
    end Recuperation_Caractere;
 
+   -- Ecrit le code binaire de l'arbre encodé dans le fichier .huff
+   procedure Output_Arbre_Enc(Huff_Enc : in out Code;
+			      SAcces : in out Stream_Access) is
+      Compte : Natural; --combien de bits on a reussi a generer
+      Caractere_Sortie : Character;
+   begin
+      Compte := 0;
+      Caractere_Sortie := Character'Val(0);
+
+      for I in Huff_Enc'Range loop
+	 Caractere_Sortie := Character'Val(Character'Pos(Caractere_Sortie)*2
+					     + Huff_Enc(I));
+	 Compte := Compte + 1;
+	 if Compte = 8 then
+	    Character'Output(SAcces, Caractere_Sortie);
+	    Caractere_Sortie := Character'Val(0);
+	    Compte := 0;
+	 end if;
+      end loop;
+
+      Liberer(Huff_Enc);
+      Huff_Enc := null;
+   end Output_Arbre_Enc;
+
+   -- Récupère le code binaire de l'arbre encodé dans le fichier .huff
+   procedure Input_Arbre_Enc(Huff_Enc : in out Code;
+			     EAcces : in out Stream_Access) is
+      Bit_Cour : Natural;
+      Caractere_Entree : Character;
+
+      R, Tmp : Natural;
+   begin
+      Bit_Cour := 1;
+
+      for I in Huff_Enc'Range loop
+	 Caractere_Entree := Character'Input(EAcces);
+
+	 -- Character to TabBits
+	 Tmp := Character'Pos(Caractere_Entree);
+	 for I in 1..8 loop
+	    R := Tmp mod 2;
+	    Huff_Enc(Bit_Cour + 8 - I) := R;
+	    Tmp := Tmp / 2;
+	 end loop;
+	 Bit_Cour := Bit_Cour + 8;
+      end loop;
+   end Input_Arbre_Enc;
 
    procedure Compression(Fichier_Entree, Fichier_Sortie: String) is
       Arbre_Huffman : Arbre;
@@ -117,17 +169,35 @@ procedure Huffman is
       Reste : Code;
       Caractere_Sortie : Character;
       D : Dico;
+      Nb_Feuilles : Natural;
+      Huff_Enc : Code;
    begin
       Lecture_Frequences(Fichier_Entree, Frequences, Taille);
       Affiche_Frequences(Frequences);
-      Arbre_Huffman := Calcul_Arbre(Frequences);
+      Arbre_Huffman := Calcul_Arbre(Frequences, Nb_Feuilles);
       Affiche_Arbre(Arbre_Huffman);
       D := Calcul_Dictionnaire(Arbre_Huffman);
       Create(Sortie, Out_File, Fichier_Sortie);
       SAcces := Stream( Sortie );
       Natural'Output(Sacces, Taille);
-      Tableau_Ascii'Output(Sacces,Frequences) ;
-      Exporte_Arbre(Arbre_Huffman);
+      Put_Line ("Taille " & Integer'Image(Taille));
+      Natural'Output(Sacces, Nb_Feuilles);
+      Put_Line ("Nombre de feuilles " & Integer'Image(Nb_Feuilles));
+      Huff_Enc := new TabBits(1..(10*Nb_Feuilles-1)); --  + ((10*Nb_Feuilles)-1) mod 8);
+      Encode_Arbre(Arbre_Huffman, Huff_Enc);
+
+      -- AFFICHE HUFF_ENC
+      --  New_Line;
+      --  For I in Huff_Enc'Range loop
+      --  	Put (Integer'Image(Huff_Enc(I)));
+      --  end loop;
+      --  New_Line;
+
+      --  Tableau_Ascii'Output(Sacces,Frequences) ;
+      --  TabBits'Output (SAcces, Huff_Enc.all);
+
+      Output_Arbre_Enc (Huff_Enc, SAcces);
+
       Open(Entree, In_File, Fichier_Entree);
       EAcces := Stream(Entree);
       Reste := null;
@@ -154,11 +224,33 @@ procedure Huffman is
 
       procedure Caractere_Suivant is new Decodage_Code(Lecture_Octet_Compresse);
       Bit_Cour : Natural := 1;
+      Nb_Feuilles : Natural;
    begin
       Open(Entree, In_File, Fichier_Entree);
       EAcces := Stream( Entree );
       Taille := Natural'Input(EAcces);
-      Arbre_Huffman := Calcul_Arbre(Tableau_Ascii'Input(EAcces)) ;
+      Put_Line ("Taille " & Integer'Image(Taille));
+      Nb_Feuilles := Natural'Input(EAcces);
+      Put_Line ("Nombre de feuilles " & Integer'Image(Nb_Feuilles));
+      --  Arbre_Huffman := Calcul_Arbre(Tableau_Ascii'Input(EAcces), Nb_Feuilles) ;
+
+      declare
+	 Huff_Enc : Code := new TabBits(1..((10*Nb_Feuilles)-1));
+	 -- +((10*Nb_Feuilles)-1) mod 8);
+      begin
+	 --  Huff_Enc.all := TabBits'Input (EAcces);
+	 Input_Arbre_Enc(Huff_Enc, EAcces);
+
+	 -- AFFICHE HUFF_ENC
+	 New_Line;
+	 For I in Huff_Enc'Range loop
+	    Put (Integer'Image(Huff_Enc(I)));
+	 end loop;
+	 New_Line;
+
+	 Arbre_Huffman := Decode_Arbre (Huff_Enc);
+      end;
+
       Create(Sortie, Out_File, Fichier_Sortie);
       SAcces := Stream (Sortie);
       Reste := null;

@@ -64,11 +64,11 @@ package body Arbre_Huffman is
    end Affiche_Arbre;
 
    --algo principal : calcul l'arbre a partir des frequences
-   function Calcul_Arbre(Frequences : in Tableau_Ascii) return Arbre is
+   function Calcul_Arbre(Frequences : in Tableau_Ascii;
+			 Nb_Feuilles : out Natural) return Arbre is
       A : Arbre;
       F : File;
       Feuille : Arbre;
-      Taille : Natural := 0;
 
       P : Natural := 0;
       PSum : Natural := 0;
@@ -78,17 +78,18 @@ package body Arbre_Huffman is
    begin
       Put_Line ("=> Calcul de l'arbre de Huffman");
 
+      Nb_Feuilles := 0;
+
       -- Mise en place de la file de priorité
       for I in Frequences'Range loop
 	 if Frequences(I) > 0 then
-	    Taille := Taille + 1;
+	    Nb_Feuilles := Nb_Feuilles + 1;
 	 end if;
       end loop;
 
       --  Put_Line ("Taille:" & Integer'Image(Taille));
 
-      -- TODO: FIND CLEANER WAY TO INIT HEAP
-      F := Nouvelle_File (256);
+      F := Nouvelle_File (Nb_Feuilles);
 
       for I in Frequences'Range loop
 	 if Frequences(I) > 0 then
@@ -120,30 +121,84 @@ package body Arbre_Huffman is
       return A;
    end Calcul_Arbre;
 
-   procedure Exporte_Arbre(A : Arbre) is
+   procedure Encode_Arbre(A : in Arbre;
+			  T : in out Code) is
 
-      procedure Exporte_Arbre_Rec(A : in Arbre) is
+      Bit_Cour : Natural := 1;
+
+      procedure Encode_Arbre_Rec(A : in Arbre;
+				 T : in out Code;
+				 Bit_Cour : in out Natural) is
+	 Tmp, R : Integer;
       begin
 	 if A.all.EstFeuille then
 	    Put ("1" & A.Char);
+	    T(Bit_Cour) := 1;
+
+	    Tmp := Character'Pos(A.Char);
+   	    for I in 1..8 loop
+   	       R := Tmp mod 2;
+   	       T(Bit_Cour+(8-I)) := R;
+   	       Tmp := Tmp / 2;
+   	    end loop;
+
+	    Bit_Cour := Bit_Cour + 8;
 	 else
 	    Put ("0");
+	    T(Bit_Cour) := 0;
+	    Bit_Cour := Bit_Cour + 1;
+
 	    if A.Fils(0) /= null then
-	       Exporte_Arbre_Rec (A.Fils(0));
+	       Encode_Arbre_Rec (A.Fils(0), T, Bit_Cour);
 	    end if;
 
 	    if A.Fils(1) /= null then
-	       Exporte_Arbre_Rec (A.Fils(1));
+	       Encode_Arbre_Rec (A.Fils(1), T, Bit_Cour);
 	    end if;
 	 end if;
+      end Encode_Arbre_Rec;
 
-      end Exporte_Arbre_Rec;
    begin
-      Put_Line ("=> Export de l'arbre de Huffman :");
+      Put_Line ("=> Encodage de l'arbre de Huffman :");
 
-      Exporte_Arbre_Rec (A);
+      Encode_Arbre_Rec (A, T, Bit_Cour);
       New_Line;
-   end Exporte_Arbre;
+   end Encode_Arbre;
+
+   function Decode_Arbre(T : in out Code) return Arbre is
+      A : Arbre := NULL;
+      Bit_Cour : Natural := 1;
+
+      procedure Decode_Arbre_Rec(A : in out Arbre;
+				 T : in out Code;
+				 Bit_Cour : in out Natural) is
+	 CarPos : Integer := 0;
+      begin
+	 if T(Bit_Cour) = 0 then
+	    Bit_Cour := Bit_Cour + 1;
+	    A := new Noeud'(EstFeuille => False,
+			    Fils => (null,null));
+	    Decode_Arbre_Rec(A.Fils(0), T, Bit_Cour);
+	    Decode_Arbre_Rec(A.Fils(1), T, Bit_Cour);
+	 else
+	    New_Line;
+	    for J in 1..8 loop
+	       Put_Line (Integer'Image(CarPos));
+   	       CarPos := CarPos + T(Bit_Cour + J);
+   	       CarPos := CarPos * 2;
+   	    end loop;
+	    Bit_Cour := Bit_Cour + 8;
+	    A := new Noeud'(EstFeuille => True,
+			    Char => Character'Val(CarPos));
+	 end if;
+      end Decode_Arbre_Rec;
+   begin
+      Put_Line ("=> Décodage de l'arbre de Huffman :");
+
+      Decode_Arbre_Rec (A, T, Bit_Cour);
+
+      return A;
+   end Decode_Arbre;
 
    function Calcul_Dictionnaire(A : Arbre) return Dico is
       type Trace is array(1..8) of ChiffreBinaire;
@@ -190,48 +245,6 @@ package body Arbre_Huffman is
 
       return D;
    end;
-
-   --  procedure Decodage_Code(Reste : in out Code;
-   --  			   Arbre_Huffman : Arbre;
-   --  			   Caractere : out Character) is
-
-   --     Position_Courante : Arbre;
-   --     Tmp,R : Natural;
-   --     Nouveau_Reste : Code;
-   --  begin
-   --     Position_Courante := Arbre_Huffman;
-   --     while not Position_Courante.EstFeuille loop
-   --  	 if Reste = null then
-   --  	    -- chargement de l'octet suivant du fichier
-   --  	    Reste := new TabBits(1..8);
-   --  	    Caractere := Octet_Suivant;
-   --  	    Tmp := Character'Pos(Caractere);
-   --  	    for I in Reste'Range loop
-   --  	       R := Tmp mod 2;
-   --  	       Reste(Reste'Last + Reste'First - I) := R;
-   --  	       Tmp := Tmp / 2;
-   --  	    end loop;
-   --  	 end if;
-
-   --  	 Position_Courante := Position_Courante.Fils(Reste(1)) ;
-
-   --  	 if Reste'Last = 1 then
-   --  	    Liberer(Reste);
-   --  	    Reste := null;
-   --  	 else
-   --  	    -- TODO : modifier cette procedure
-   --  	    -- pour eviter de faire a chaque iteration
-   --  	    -- une allocation + 1 liberation
-   --  	    Nouveau_Reste := new TabBits(1..(Reste'Last - 1));
-   --  	    for I in Nouveau_Reste'Range loop
-   --  	       Nouveau_Reste(I) := Reste(I+1);
-   --  	    end loop;
-   --  	    Liberer(Reste);
-   --  	    Reste := Nouveau_Reste;
-   --  	 end if;
-   --     end loop;
-   --     Caractere := Position_Courante.Char;
-   --  end;
 
    procedure Decodage_Code(Reste : in out Code;
    			   Arbre_Huffman : Arbre;
