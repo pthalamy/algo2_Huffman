@@ -264,7 +264,7 @@ package body Arbre_Huffman is
       begin
 	 if A.all.EstFeuille then
 	    --  Si on a une feuille, on stocke la trace du chemin
-	    --  dans le dico a d'indice correspondant au caractere de la feuille
+	    --  dans le dico a l'indice correspondant au caractere de la feuille
 	    D(A.Char) := new TabBits(T'First..C);
 	    for I in D(A.Char)'range loop
 	       D(A.Char)(I) := T(I);
