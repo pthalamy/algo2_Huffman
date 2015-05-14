@@ -232,7 +232,7 @@ procedure Huffman is
       end;
 
       procedure Caractere_Suivant is new Decodage_Code(Lecture_Octet_Compresse);
-      Bit_Cour : Natural := 1;
+      Bit_Cour : Natural := 0;
       Nb_Feuilles : Natural;
       Taille_Enc : Natural;
    begin
@@ -251,13 +251,14 @@ procedure Huffman is
 
       Create(Sortie, Out_File, Fichier_Sortie);
       SAcces := Stream (Sortie);
-      Reste := null;
+      Reste := new TabBits(1..8);
       Octets_Ecrits := 0;
       while(Octets_Ecrits < Taille) loop
 	 Caractere_Suivant(Reste, Arbre_Huffman, Caractere, Bit_Cour);
 	 Octets_Ecrits := Octets_Ecrits + 1;
 	 Character'Output(SAcces, Caractere);
       end loop;
+      Liberer (Reste);
       Close(Entree);
       Close(Sortie);
       if (Octets_Ecrits /= Taille) then

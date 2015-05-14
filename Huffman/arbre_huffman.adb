@@ -302,7 +302,7 @@ package body Arbre_Huffman is
    
    --  Afin de palier aux allocations / Desallocations a chaque iterations.
    --  On a ajoute l'argument Bit_Cour, qui associe au Tab_Bits pointe par
-   --  Reste de taille fixe, memorise l'indice auquel on peut ecrire
+   --  Reste, indique l'indice courant de Reste
    procedure Decodage_Code(Reste : in out Code;
    			   Arbre_Huffman : Arbre;
    			   Caractere : out Character;
@@ -313,9 +313,8 @@ package body Arbre_Huffman is
    begin
       Position_Courante := Arbre_Huffman;
       while not Position_Courante.EstFeuille loop
-   	 if Reste = null then
+   	 if Bit_Cour = 0 then
    	    -- chargement de l'octet suivant du fichier
-   	    Reste := new TabBits(1..8); --  Reste.all de taille fixe = 8 "bits"
 	    Bit_Cour := 1;		--  Reste vide, Bit_Cour sur premier elt
    	    Caractere := Octet_Suivant;
    	    Tmp := Character'Pos(Caractere);
@@ -328,9 +327,8 @@ package body Arbre_Huffman is
 
    	 Position_Courante := Position_Courante.Fils(Reste(Bit_Cour)) ;
 
-   	 if Bit_Cour = 8 then 		--  Le Reste est plein, liberation
-   	    Liberer(Reste);
-   	    Reste := null;
+   	 if Bit_Cour = 8 then 		--  Le Reste est plein, on le "vide"
+	    Bit_Cour := 0;
    	 else
    	    Bit_Cour := Bit_Cour + 1;
    	 end if;

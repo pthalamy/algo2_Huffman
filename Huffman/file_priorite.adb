@@ -96,6 +96,9 @@ package body File_Priorite is
       Nb_Elts := Nb_Elts - 1;
 
       while I < Nb_Elts loop
+	 --  On se contraint a la taille de F
+	 exit when 2 * I > Nb_Elts;
+
       	 -- Recherche du plus petit des deux fils et affectation a J
       	 if Compare (F(2*I).P, F(2*I + 1).P) = SUP then
 	    J := 2*I + 1;
@@ -103,9 +106,6 @@ package body File_Priorite is
 	    J := 2*I;
          end if;
 	 
-	 --  On se contraint a la taille de F
-	 exit when J > Nb_Elts;
-
       	 -- On compare avec le dernier element, alors à la racine
       	 if Compare (F(J).P, F(I).P) = INF then
 	    --  Echange si prio de elt considere < prio elt courant
