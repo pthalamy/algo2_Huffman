@@ -115,12 +115,13 @@ procedure Huffman is
    -- Ecrit le code binaire de l'arbre encodé dans le fichier .huff
    procedure Output_Arbre_Enc(Huff_Enc : in out Code;
 			      SAcces : in out Stream_Access) is
-      Compte : Natural; --combien de bits on a reussi a generer
-      Caractere_Sortie : Character;
+      Compte : Natural; -- combien de bits on a reussi a generer
+      Caractere_Sortie : Character; 	--  Octet a ecrire
    begin
       Compte := 0;
       Caractere_Sortie := Character'Val(0);
-
+      
+      --  Remplissage de Caractere_Sortie a partir des valeurs de Huff_Enc
       for I in Huff_Enc'Range loop
 	 Caractere_Sortie := Character'Val(Character'Pos(Caractere_Sortie)*2
 					     + Huff_Enc(I));
@@ -131,18 +132,20 @@ procedure Huffman is
 	    Compte := 0;
 	 end if;
       end loop;
-
+      
+      --  Huff_Enc plus utile, liberation
       Liberer(Huff_Enc);
       Huff_Enc := null;
    end Output_Arbre_Enc;
 
    -- Récupère le code binaire de l'arbre encodé dans le fichier .huff
+   --  Et le stocke dans Huff_Enc
    procedure Input_Arbre_Enc(Huff_Enc : in out Code;
 			     EAcces : in out Stream_Access) is
-      Bit_Cour : Natural;
-      Caractere_Entree : Character;
+      Bit_Cour : Natural;  		--  Indice courant dans Huff_Enc
+      Caractere_Entree : Character; 	--  Mot de 8 bits lu
 
-      R, Tmp : Natural;
+      R, Tmp : Natural; 		--  Utilises pour char -> tab_bits
    begin
       Bit_Cour := 1;
 
@@ -160,7 +163,12 @@ procedure Huffman is
 	 Bit_Cour := Bit_Cour + 8;
       end loop;
    end Input_Arbre_Enc;
-
+   
+   --  Retourne la taille de l'encodage de l'arbre a partir du nb_feuilles
+   --  selon la formule taille = 10f - 1 bits
+   --  !! ON PROCEDE A UN ARRONDI AU MULTIPLE DE 8 SUPERIEUR !!
+   --  Ceci afin d'eviter des problemes lies a la technique d'ecriture
+   --  dans le fichier binaire
    function Calcul_Taille_Huff(Nb_Feuilles : Natural) return Natural is
    begin
       if ((10*Nb_Feuilles)-1) mod 8 = 0 then
@@ -183,7 +191,6 @@ procedure Huffman is
       Nb_Feuilles : Natural;
       Huff_Enc : Code;
       Taille_Enc : Natural;
-
    begin
       Lecture_Frequences(Fichier_Entree, Frequences, Taille);
       Affiche_Frequences(Frequences);
@@ -194,7 +201,7 @@ procedure Huffman is
       SAcces := Stream( Sortie );
       Natural'Output(Sacces, Taille);
       Natural'Output(Sacces, Nb_Feuilles);
-
+      
       Taille_Enc := Calcul_Taille_Huff (Nb_Feuilles);
       Huff_Enc := new TabBits(1..Taille_Enc);
       Encode_Arbre(Arbre_Huffman, Huff_Enc);
