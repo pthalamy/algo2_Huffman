@@ -24,7 +24,7 @@ package body Arbre_Huffman is
       type Trace is array(1..32) of ChiffreBinaire;
       
       --  Visite tout l'arbre A recursivement et en memorisant le chemin
-      --  parcouru dans T et l'affiche une a la rencontre d'une feuille
+      --  parcouru dans T et l'affiche a la rencontre d'une feuille
       --  ainsi que le caractere qui lui est associe
       --  La variable C indique le nombre de 0 et 1 ecrit dans T, soit
       --  son indice courant
