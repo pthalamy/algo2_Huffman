@@ -21,7 +21,7 @@ package body Arbre_Huffman is
       
       --  Garde en memoire le chemin (suite de 0 et 1) parcouru
       --  jusqu'a une feuille
-      type Trace is array(1..8) of ChiffreBinaire;
+      type Trace is array(1..32) of ChiffreBinaire;
       
       --  Visite tout l'arbre A recursivement et en memorisant le chemin
       --  parcouru dans T et l'affiche une a la rencontre d'une feuille
@@ -255,7 +255,7 @@ package body Arbre_Huffman is
    --  
    -- Fonctionnement similaire a Affichage_Arbre, mais avec stockage dans D
    function Calcul_Dictionnaire(A : Arbre) return Dico is
-      type Trace is array(1..8) of ChiffreBinaire;
+      type Trace is array(1..32) of ChiffreBinaire;
 
       procedure Calcul_Dictionnaire_Rec (A : in Arbre;
 					 D : in out Dico;
